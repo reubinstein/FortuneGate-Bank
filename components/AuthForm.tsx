@@ -48,8 +48,22 @@ import PlaidLink from './PlaidLink';
     setIsLoading(true)
     try {
      // sign up with uppwrite && create a  plaid link token
+     
      if(type==='sign-up'){
-        const newUser = await signUp(data);
+      const userData={
+        firstName: data.firstName!,
+        lastName: data.lastName!,
+        address1: data.address1!,
+        city:data.city!,
+        state:data.state!,
+        postalCode:data.postalCode!,
+        dob:data.dob!,
+        ssn:data.ssn!,
+        email:data.email,
+        password:data.password
+
+       }
+        const newUser = await signUp(userData);
 
         setUser(newUser)
      }
