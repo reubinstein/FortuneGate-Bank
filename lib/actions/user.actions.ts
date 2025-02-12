@@ -10,14 +10,14 @@ import {
   Products,
 } from "plaid";
 
-import { plaidClient } from "@/lib/plaid.config";
+import { plaidClient } from "@/lib/plaid";
 import {
   parseStringify,
   extractCustomerIdFromUrl,
   encryptId,
 } from "@/lib/utils";
 
-import { createAdminClient, createSessionClient } from "../appwrite.config";
+import { createAdminClient, createSessionClient } from "../appwrite";
 
 import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
 
@@ -69,7 +69,7 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
       password
     );
 
-    cookies().set("appwrite-session", session.secret, {
+    (await cookies()).set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
       sameSite: "strict",
@@ -95,7 +95,7 @@ export const signIn = async ({ email, password }: signInProps) => {
     const { account } = await createAdminClient();
     const session = await account.createEmailPasswordSession(email, password);
 
-    cookies().set("appwrite-session", session.secret, {
+    (await cookies()).set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
       sameSite: "strict",
@@ -124,6 +124,19 @@ export const getLoggedInUser = async () => {
     return null;
   }
 };
+
+export const logoutAccount = async ()=>{
+  try {
+     const{account}= await  createSessionClient();
+     (await cookies()).delete('appwrite-session');
+     await account.deleteSession('current');
+  } catch (error) {
+    return  null;
+  }
+}
+
+
+
 
 // CREATE PLAID LINK TOKEN
 export const createLinkToken = async (user: User) => {
@@ -199,7 +212,7 @@ export const exchangePublicToken = async ({
       accountId: accountData.account_id,
       accessToken,
       fundingSourceUrl,
-      sharableId: encryptId(accountData.account_id),
+      sharerableId: encryptId(accountData.account_id),
     });
 
     // Revalidate the path to reflect the changes
@@ -240,7 +253,7 @@ export const createBankAccount = async ({
   accountId,
   bankId,
   fundingSourceUrl,
-  sharableId,
+  sharerableId,
 }: createBankAccountProps) => {
   try {
     const { database } = await createAdminClient();
@@ -255,7 +268,7 @@ export const createBankAccount = async ({
         accountId,
         bankId,
         fundingSourceUrl,
-        sharableId,
+        sharerableId,
       }
     );
 

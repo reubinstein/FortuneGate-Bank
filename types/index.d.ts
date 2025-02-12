@@ -316,7 +316,7 @@ declare interface createBankAccountProps {
   accountId: string;
   bankId: string;
   fundingSourceUrl: string;
-  sharableId: string;
+  sharerableId: string;
 }
 
 declare interface getBanksProps {
