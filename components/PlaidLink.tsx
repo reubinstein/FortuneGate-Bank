@@ -1,67 +1,93 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { Button } from './ui/button'
-import  {PlaidLinkOnSuccess, PlaidLinkOptions, usePlaidLink} from 'react-plaid-link'
-import { useRouter } from 'next/navigation'
-import { createLinkToken, exchangePublicToken } from '@/lib/actions/user.actions'
-import Image  from 'next/image'
+import React, { useCallback, useEffect, useState } from "react";
+import { Button } from "./ui/button";
+import { PlaidLinkOnSuccess, PlaidLinkOptions, usePlaidLink } from "react-plaid-link";
+import { useRouter } from "next/navigation";
+import { createLinkToken, exchangePublicToken } from "@/lib/actions/user.actions";
+import Image from "next/image";
 
-const PlaidLink = ({user, variant}:PlaidLinkProps) => {
+const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
   const router = useRouter();
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState<string | null>(null);
+  const [linkReady, setLinkReady] = useState(false); // Track if Plaid is ready
 
-  useEffect(()=>{
-  const getLinkToken = async() =>{
-  const data = await createLinkToken(user);
+  useEffect(() => {
+    if (!token) {
+      const getLinkToken = async () => {
+        try {
+          console.log("Fetching Plaid Link Token...");
+          const data = await createLinkToken(user);
+          console.log("Plaid Link Token Response:", data?.linkToken);
 
-  setToken(data?.LinkToken);
+          if (data?.linkToken) {
+            setToken(data.linkToken);
+          } else {
+            console.error("Error: No link_token returned from createLinkToken.");
+          }
+        } catch (error) {
+          console.error("Failed to fetch Plaid link token:", error);
+        }
+      };
+      getLinkToken();
+    }
+  }, [user, token]);
+
+  const onSuccess = useCallback<PlaidLinkOnSuccess>(
+    async (public_token: string) => {
+      await exchangePublicToken({
+        publicToken: public_token,
+        user,
+      });
+      router.push("/");
+    },
+    [user, router]
+  );
+
+  // Wait until token is available before initializing usePlaidLink
+  const { open, ready } = usePlaidLink(
+    token
+      ? { token, onSuccess }
+      : { token: "", onSuccess } // Prevents errors if token is empty
+  );
+
+  useEffect(() => {
+    if (ready) setLinkReady(true);
+  }, [ready]);
+
+  if (!token) {
+    return <p>Loading Plaid...</p>; // Show a loading state until token is ready
   }
-  getLinkToken();
-  },[user]);
-  
-  const onSuccess = useCallback<PlaidLinkOnSuccess> (async (public_token:string) => {
-  await exchangePublicToken({
-   publicToken: public_token,
-   user,
-  })
 
-  router.push('/');
-  },[user])
-
-
-  const config:PlaidLinkOptions ={
-    token,
-    onSuccess
-  }
-  const {open, ready}= usePlaidLink(config);  
   return (
     <>
-     {variant==='primary'?(
-        <Button  onClick={() => open()}
-        disabled={!ready}
-        className="plaidlink-primary">
-            Connect Bank
+      {variant === 'primary' ? (
+        <Button
+          onClick={() => open()}
+          disabled={!ready}
+          className="plaidlink-primary"
+        >
+          Connect bank
         </Button>
-     ) :variant==='ghost'?(
-        <Button onClick={()=> open()}  variant="ghost"className='plaidlink-ghost'>
-            <Image
-           src="/icons/connect-bank.svg"
-           alt="connect bank"
-           width={24}
-           height={24}
+      ): variant === 'ghost' ? (
+        <Button onClick={() => open()} variant="ghost" className="plaidlink-ghost">
+          <Image 
+            src="/icons/connect-bank.svg"
+            alt="connect bank"
+            width={24}
+            height={24}
           />
-            <p className='hidden text-[16px] font-semibold text-black-2 xl:block'>Connect Bank</p>
+          <p className='hiddenl text-[16px] font-semibold text-black-2 xl:block'>Connect bank</p>
         </Button>
-     ):(
-        <Button onClick={()=> open()} className='plaidlink-default'>
-          <Image
-           src="/icons/connect-bank.svg"
-           alt="connect bank"
-           width={24}
-           height={24}
+      ): (
+        <Button onClick={() => open()} className="plaidlink-default">
+          <Image 
+            src="/icons/connect-bank.svg"
+            alt="connect bank"
+            width={24}
+            height={24}
           />
-            <p className='text-[16px] font-semibold text-black-2'>Connect Bank</p>
+          <p className='text-[16px] font-semibold text-black-2'>Connect bank</p>
         </Button>
-     )}
+      )}
     </>
   )
 }

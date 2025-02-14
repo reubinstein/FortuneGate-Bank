@@ -57,7 +57,7 @@ import PlaidLink from './PlaidLink';
         city:data.city!,
         state:data.state!,
         postalCode:data.postalCode!,
-        dob:data.dob!,
+        dateOfBirth:data.dateOfBirth!,
         ssn:data.ssn!,
         email:data.email,
         password:data.password
@@ -147,7 +147,7 @@ import PlaidLink from './PlaidLink';
             </div>
             <div className="flex gap-4">
             <CustomInput
-            control={form.control} name="dob"
+            control={form.control} name="dateOfBirth"
             label="Date of Birth" placeholder="Example:YY-MM-DD"
             />
             <CustomInput
