@@ -79,12 +79,12 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
           email: data.email,
         };
 
-         const newTransaction = await createTransaction(transaction);
+        const newTransaction = await createTransaction(transaction);
 
-         if (newTransaction) {
-           form.reset();
-           router.push("/");
-         }
+        if (newTransaction) {
+          form.reset();
+          router.push("/");
+        }
       }
     } catch (error) {
       console.error("Submitting create transfer request failed: ", error);

@@ -13,7 +13,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
       return <p className="text-center text-red-500">Error: Invalid page parameters.</p>;
     }
 
-    const id = searchParams.id || null;
+    const id =  await searchParams.id || null;
     const page = searchParams.page || "1"; // Default to page 1 if undefined
 
     const currentPage = Number(page);

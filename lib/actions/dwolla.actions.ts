@@ -55,13 +55,20 @@ export const createDwollaCustomer = async (
   newCustomer: NewDwollaCustomerParams
 ) => {
   try {
-    return await dwollaClient
-      .post("customers", newCustomer)
-      .then((res) => res.headers.get("location"));
+    const response = await dwollaClient.post("customers", newCustomer);
+    const location = response.headers.get("location");
+
+    if (!location) {
+      throw new Error("Dwolla Customer URL is missing in the response.");
+    }
+
+    return location;
   } catch (err) {
-    console.error("Creating a Dwolla Customer Failed: ", err);
+    console.error("Creating a Dwolla Customer Failed:", err);
+    throw err; // Ensure the error is thrown so that signUp catches it
   }
 };
+
 
 export const createTransfer = async ({
   sourceFundingSourceUrl,

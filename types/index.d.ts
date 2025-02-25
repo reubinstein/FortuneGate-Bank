@@ -40,6 +40,7 @@ declare type User = {
   postalCode: string;
   dateOfBirth: string;
   ssn: string;
+  photoURL?: string;
 };
 
 declare type NewUserParams = {
@@ -178,6 +179,7 @@ declare interface PlaidLinkProps {
   user: User;
   variant?: "primary" | "ghost";
   dwollaCustomerId?: string;
+  dwollaCustmerUrl?:string;
 }
 
  declare type User = sdk.Models.Document & {

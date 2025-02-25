@@ -23,7 +23,7 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
     const user = await database.listDocuments(
       DATABASE_ID!,
       USER_COLLECTION_ID!,
-      [Query.equal('userId', [userId])]
+      [Query.equal('userId', userId)]
     )
 
     return parseStringify(user.documents[0]);
@@ -39,12 +39,16 @@ export const signIn = async ({ email, password }: signInProps) => {
 
     console.log("✅ Debug: Session created:", session);
 
-    (await cookies()).set("appwrite-session", session.secret, {
+    // Ensure the session is properly stored
+    const cookieStore = await cookies();
+    cookieStore.set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
       sameSite: "strict",
       secure: true,
     });
+
+    console.log("✅ Debug: Session cookie set successfully");
 
     const user = await getUserInfo({ userId: session.userId });
 
@@ -56,6 +60,7 @@ export const signIn = async ({ email, password }: signInProps) => {
     return null;
   }
 };
+
 
 
 export const signUp = async ({ password, ...userData }: SignUpParams) => {
@@ -77,24 +82,27 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 
     const dwollaCustomerUrl = await createDwollaCustomer({
       ...userData,
-      type:'personal'
-    })
+      type: 'personal'
+    });
 
-    if(!dwollaCustomerUrl) throw new Error('Error creating Dwolla customer')
+    if (!dwollaCustomerUrl) {
+      console.error("Dwolla Customer URL is undefined.");
+      throw new Error("Dwolla Customer URL is missing.");
+    }
 
     const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
 
-    const newUser =  database.createDocument(
+    const newUser = await database.createDocument( // Ensure 'await' is used
       DATABASE_ID!,
       USER_COLLECTION_ID!,
-      ID.unique(),
+      ID.unique(), 
       {
         ...userData,
         userId: newUserAccount.$id,
         dwollaCustomerId,
         dwollaCustomerUrl
       }
-    )
+    );
 
     const session = await account.createEmailPasswordSession(email, password);
 
@@ -107,9 +115,11 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 
     return parseStringify(newUser);
   } catch (error) {
-    console.error('Error', error);
+    console.error("Signup Failed: ", error);
+    return { success: false, error: error };
   }
-}
+};
+
 
 export const getLoggedInUser = async () => {
   try {
@@ -156,7 +166,7 @@ export const createLinkToken = async (user: User) => {
         client_user_id: user?.$id || "missing_id",
       },
       client_name: `${user?.firstName || "Unknown"} ${user?.lastName || "User"}`,
-      products: ["auth"] as Products[], // Ensure "auth" is typed correctly
+      products: ["auth","transactions"] as Products[], // Ensure both auth and transactions are included
       language: "en",
       country_codes: ["US"] as CountryCode[], // Explicitly cast to CountryCode[]
     };

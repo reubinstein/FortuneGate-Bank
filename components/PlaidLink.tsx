@@ -53,9 +53,7 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
     if (ready) setLinkReady(true);
   }, [ready]);
 
-  if (!token) {
-    return <p>Loading Plaid...</p>; // Show a loading state until token is ready
-  }
+  
 
   return (
     <>

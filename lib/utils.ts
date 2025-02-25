@@ -69,7 +69,7 @@ export const formatDateTime = (dateString: Date) => {
 export function formatAmount(amount: number): string {
   const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "TZS",
+    currency: "USD",
     minimumFractionDigits: 2,
   });
 
@@ -223,5 +223,7 @@ export const authFormSchema = (type: string) => {
     city: type === 'sign-in' ? z.string().optional() : z.string().min(3),
     email: z.string().email(),
     password: z.string().min(8),
+    photoURL: z.string().url().optional(),  // ✅ Google profile image
   });
+  
 };
